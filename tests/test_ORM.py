@@ -86,11 +86,13 @@ class BaseORMTest(BaseTest):
 class TestORMSetup(BaseTest):
     # don't explicity use unittests here, we just want errors to be raised
     def test_ormsetup_inmemory(self):
+        """Test setup of ORM and creation/population of DB tables (in memory)"""
         engine = create_engine("sqlite://")
         session = sessionmaker(bind=engine)()
         TableBase.metadata.create_all(engine)
 
     def test_orm_generation_function(self):
+        """Test setup of ORM and creation/population of DB tables (to SQLite)"""
         db_fn = path.join(OUT_DIR, "test.db")
         orm.main(db_fn)
         self.assertTrue(path.exists(db_fn))
@@ -147,7 +149,7 @@ class TestUser(BaseORMTest):
 class TestExperiment(BaseORMTest):
     model = Experiment
     def test_add_experiment(self):
-        """Test adding a expt"""
+        """Test adding an experiment"""
         record = {
                 "user_id": 1,
                 "start_date": "2014-02-21",
