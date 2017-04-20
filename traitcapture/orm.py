@@ -11,7 +11,7 @@ from sqlalchemy import (
         )
 from sqlalchemy import Column, Integer, UniqueConstraint, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker, validates
 from sqlalchemy.orm.exc import (
         MultipleResultsFound,
         NoResultFound,
@@ -67,8 +67,9 @@ def _validate_kwargs(kwargs, validation):
 class Accession(TableBase):
     __tablename__ = "accessions"
     accession_name = Column(String(255), nullable=False)
-    species_id = Column(Integer, ForeignKey('species.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    lable_name = Column(String(8), nullable=False)
+    species = Column(Integer, ForeignKey('species.id'), nullable=False)
+    user = Column(Integer, ForeignKey('users.id'))
     has_seed = Column(Boolean, default=True)
     date_collected = Column(DateTime)
     latitude = Column(Float)
@@ -82,16 +83,23 @@ class Accession(TableBase):
     source = Column(Text)
     external_id = Column(String(45))
     notes = Column(Text)
-    ala_id = Column(String(63))
     first_parent_id = Column(Integer, ForeignKey('accessions.id'))
     first_parent_gender = Column(Integer)
     second_parent_id = Column(Integer, ForeignKey('accessions.id'))
     second_parent_gender = Column(Integer)
-    data = Column(LargeBinary)
 
     def __init__(self, **kwargs):
         super(Accession, self).__init__()
         pack_extras(self, kwargs)
+
+    @validates("label_name")
+    def validate_label_name(self, key, name):
+        valid_chars = string.ascii_letters + string.digits + '-'
+        assert isinstance(name, str)
+        assert (len(name) <= 8 and len(name) > 0)
+        for char in name:
+            assert char in valid_chars
+        return name
 
 
 class Experiment(TableBase):
